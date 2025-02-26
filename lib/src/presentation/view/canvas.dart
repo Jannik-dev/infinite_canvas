@@ -200,10 +200,8 @@ class InfiniteCanvasState extends State<InfiniteCanvas> {
               if (controller.shiftPressed) {
                 controller.mouseDown = true;
               }
-              // if (!controller.spacePressed) {
-                controller.marqueeStart = details.localPosition;
-                controller.marqueeEnd = details.localPosition;
-              // }
+              controller.marqueeStart = details.localPosition;
+              controller.marqueeEnd = details.localPosition;
             }  else {
               controller.mouseDown = true;
               if (controller.controlPressed && widget.canAddEdges) {
