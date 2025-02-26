@@ -2,14 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:vector_math/vector_math_64.dart' hide Colors;
 
-import '../widgets/delegate.dart';
-import '../../domain/model/node.dart';
 import '../../domain/model/edge.dart';
-import '../widgets/edge_renderer.dart';
+import '../../domain/model/menu_entry.dart';
+import '../../domain/model/node.dart';
 import '../state/controller.dart';
+import '../widgets/delegate.dart';
+import '../widgets/edge_renderer.dart';
 import '../widgets/grid_background.dart';
 import '../widgets/marquee.dart';
-import '../../domain/model/menu_entry.dart';
 import '../widgets/menus.dart';
 import '../widgets/node_renderer.dart';
 
@@ -169,9 +169,6 @@ class InfiniteCanvasState extends State<InfiniteCanvas> {
                 event.logicalKey == LogicalKeyboardKey.metaRight) {
               controller.metaPressed = true;
             }
-            if (event.logicalKey == LogicalKeyboardKey.space) {
-              controller.spacePressed = true;
-            }
           }
           if (event is KeyUpEvent) {
             if (event.logicalKey == LogicalKeyboardKey.shiftLeft ||
@@ -188,9 +185,6 @@ class InfiniteCanvasState extends State<InfiniteCanvas> {
               controller.linkStart = null;
               controller.linkEnd = null;
             }
-            if (event.logicalKey == LogicalKeyboardKey.space) {
-              controller.spacePressed = false;
-            }
             if (event.logicalKey == LogicalKeyboardKey.delete ||
                 event.logicalKey == LogicalKeyboardKey.backspace) {
               if (controller.focusNode.hasFocus) {
@@ -201,14 +195,17 @@ class InfiniteCanvasState extends State<InfiniteCanvas> {
         },
         child: Listener(
           onPointerDown: (details) {
-            controller.mouseDown = true;
             controller.checkSelection(details.localPosition);
             if (controller.selection.isEmpty) {
-              if (!controller.spacePressed) {
+              if (controller.shiftPressed) {
+                controller.mouseDown = true;
+              }
+              // if (!controller.spacePressed) {
                 controller.marqueeStart = details.localPosition;
                 controller.marqueeEnd = details.localPosition;
-              }
-            } else {
+              // }
+            }  else {
+              controller.mouseDown = true;
               if (controller.controlPressed && widget.canAddEdges) {
                 final selected = controller.selection.last;
                 controller.linkStart = selected.key;
@@ -242,6 +239,9 @@ class InfiniteCanvasState extends State<InfiniteCanvas> {
             controller.checkSelection(controller.mousePosition, true);
           },
           onPointerMove: (details) {
+            if (!controller.shiftPressed) {
+              return;
+            }
             controller.marqueeEnd = details.localPosition;
             if (controller.marqueeStart != null &&
                 controller.marqueeEnd != null) {
@@ -257,7 +257,9 @@ class InfiniteCanvasState extends State<InfiniteCanvas> {
               controller.viewport = constraints.biggest;
               return InteractiveViewer.builder(
                 transformationController: controller.transform,
-                panEnabled: controller.canvasMoveEnabled,
+                panEnabled: controller.shiftPressed
+                    ? false
+                    : controller.canvasMoveEnabled,
                 scaleEnabled: controller.canvasMoveEnabled,
                 onInteractionStart: (details) {
                   controller.mousePosition = details.focalPoint;
@@ -266,8 +268,6 @@ class InfiniteCanvasState extends State<InfiniteCanvas> {
                 onInteractionUpdate: (details) {
                   if (!controller.mouseDown) {
                     controller.scale = details.scale;
-                  } else if (controller.spacePressed) {
-                    controller.pan(details.focalPointDelta);
                   } else if (controller.controlPressed) {
                   } else {
                     controller.moveSelection(details.focalPoint,

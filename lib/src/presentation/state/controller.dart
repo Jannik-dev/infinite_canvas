@@ -121,14 +121,6 @@ class InfiniteCanvasController extends ChangeNotifier implements Graph {
     notifyListeners();
   }
 
-  bool _spacePressed = false;
-  bool get spacePressed => _spacePressed;
-  set spacePressed(bool value) {
-    if (value == _spacePressed) return;
-    _spacePressed = value;
-    notifyListeners();
-  }
-
   bool _controlPressed = false;
   bool get controlPressed => _controlPressed;
   set controlPressed(bool value) {
